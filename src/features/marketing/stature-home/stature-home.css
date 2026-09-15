@@ -1,0 +1,203 @@
+/* Stature public page — Prowin homepage structure, Stature teal/navy. */
+
+html:has(.stature-home) {
+  scroll-behavior: smooth;
+  scroll-padding-top: 96px;
+}
+
+.stature-home {
+  --red: #2bb3a0;
+  --red-dark: #1f8f80;
+  --gold: #1b3f6e;
+  --ink: #141414;
+  --slate: #4a4a4a;
+  --line: #e7e7e7;
+  --bg: #ffffff;
+  --mist: #faf9f8;
+  --sky: #e7eef5;
+  color: var(--ink);
+  background: var(--mist);
+  scroll-behavior: smooth;
+  color-scheme: light;
+}
+
+.stature-home .hp-split-form input:focus-visible,
+.stature-home .hp-split-form textarea:focus-visible,
+.stature-home .hp-split-form select:focus-visible {
+  box-shadow: 0 0 0 2px rgba(43, 179, 160, 0.45);
+}
+
+.stature-header {
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(10px);
+}
+
+.stature-header a:has(.stature-logo) {
+  display: flex;
+  align-items: center;
+  line-height: 0;
+  background: transparent;
+}
+
+.stature-logo {
+  display: block;
+  height: 52px !important;
+  width: auto !important;
+  max-width: min(240px, 58vw);
+  object-fit: contain;
+  object-position: left center;
+  background: transparent !important;
+}
+
+.stature-logo--footer {
+  height: 56px;
+}
+
+.stature-header-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  cursor: pointer;
+  font-family: inherit;
+  border-radius: 2px;
+  background: var(--red);
+  padding: 9px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  transition: background 0.18s;
+}
+
+.stature-header-cta:hover {
+  background: var(--red-dark);
+  color: #fff;
+}
+
+.stature-home section[id],
+.stature-home #top {
+  scroll-margin-top: 96px;
+}
+
+.stature-home .hp-hero-scrim {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.96) 0%,
+    rgba(255, 255, 255, 0.88) 26%,
+    rgba(255, 255, 255, 0.45) 48%,
+    rgba(255, 255, 255, 0.12) 70%,
+    rgba(255, 255, 255, 0) 88%
+  );
+}
+
+.stature-home .hp-split .l .hp-btn {
+  align-self: flex-start;
+}
+
+.stature-form-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.stature-wa-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 3px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.stature-wa-link--light {
+  border-color: var(--line);
+  color: var(--ink);
+}
+
+.stature-wa-link--light:hover {
+  background: var(--mist);
+  color: var(--ink);
+}
+
+.stature-lead-form label {
+  color: var(--ink);
+}
+
+.stature-lead-form input,
+.stature-lead-form textarea,
+.stature-lead-form select {
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+}
+
+.stature-lead-form .hp-split-submit {
+  width: 100%;
+  background: var(--red);
+  color: #fff;
+  border: 0;
+  font-weight: 600;
+  border-radius: 3px;
+}
+
+.stature-lead-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.stature-lead-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(15, 15, 18, 0.55);
+}
+
+.stature-lead-dialog {
+  position: relative;
+  z-index: 1;
+  width: min(480px, 100%);
+  max-height: min(92vh, 820px);
+  overflow: auto;
+  background: #fff;
+  padding: 28px 26px 24px;
+  border-radius: 4px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
+}
+
+.stature-lead-dialog h2 {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 28px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.stature-lead-close {
+  border: 0;
+  background: none;
+  font-size: 28px;
+  line-height: 1;
+  color: var(--slate);
+  padding: 0 4px;
+}
+
+.stature-legal h2 {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 1.35rem;
+  font-weight: 500;
+  color: var(--ink);
+  margin-top: 1.5rem;
+}
+
+.stature-legal a {
+  color: var(--red);
+  font-weight: 600;
+}

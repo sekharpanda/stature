@@ -1,0 +1,339 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+/* =============================================================================
+   Prowin REOS design tokens
+   Light: editorial luxury (white / mist / brand red / gold)
+   Dark:  premium charcoal with warmed brand accents
+   ============================================================================= */
+
+:root {
+  --red: #a01919;
+  --red-dark: #7d1313;
+  --ink: #141414;
+  /* Darkened from #5b5b5b so body copy on mist/white clears WCAG AA. */
+  --slate: #4a4a4a;
+  --line: #e7e7e7;
+  --bg: #ffffff;
+  --mist: #faf9f8;
+  --gold: #c4a574;
+  --gold-deep: #9a7b45;
+  --sky: #e7eef5;
+
+  /* Radius scale:
+     sharp (3px)  — buttons, inputs, editorial chrome (matches brand)
+     card  (20px) — property cards and soft panels
+     The shadcn --radius family below stays for admin/dashboard components. */
+  --radius-sharp: 3px;
+  --radius-card: 20px;
+  --radius: 0.5rem;
+  --wrap: 1180px;
+
+  --background: var(--mist);
+  --foreground: var(--ink);
+  --card: #ffffff;
+  --card-foreground: var(--ink);
+  --popover: #ffffff;
+  --popover-foreground: var(--ink);
+  --primary: var(--red);
+  --primary-foreground: #ffffff;
+  --secondary: #f4f2f0;
+  --secondary-foreground: var(--ink);
+  --muted: #f4f2f0;
+  --muted-foreground: var(--slate);
+  --accent: #f3eee6;
+  --accent-foreground: #6b5220;
+  --destructive: #b42318;
+  --destructive-foreground: #ffffff;
+  --success: #15803d;
+  --warning: #b45309;
+  --info: #1d4ed8;
+  --border: var(--line);
+  --input: var(--line);
+  --ring: var(--red);
+
+  --sidebar: #ffffff;
+  --sidebar-foreground: #3f3f46;
+  --sidebar-primary: var(--red);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f6f4f2;
+  --sidebar-accent-foreground: var(--ink);
+  --sidebar-border: var(--line);
+  --sidebar-ring: var(--red);
+
+  --chart-1: #a01919;
+  --chart-2: #b08948;
+  --chart-3: #2f6f8f;
+  --chart-4: #6b7280;
+  --chart-5: #7d1313;
+}
+
+.dark {
+  --red: #e0564e;
+  --red-dark: #b93c35;
+  --ink: #f5f3f1;
+  --slate: #a3a3ab;
+  --line: #2a2a2f;
+  --bg: #0b0b0c;
+  --mist: #101012;
+  --gold: #cda264;
+  --sky: #1b2733;
+
+  --background: #0b0b0c;
+  --foreground: #f5f3f1;
+  --card: #141417;
+  --card-foreground: #f5f3f1;
+  --popover: #17171b;
+  --popover-foreground: #f5f3f1;
+  --primary: #e0564e;
+  --primary-foreground: #16090a;
+  --secondary: #1c1c20;
+  --secondary-foreground: #f5f3f1;
+  --muted: #1a1a1e;
+  --muted-foreground: #a3a3ab;
+  --accent: #2a2118;
+  --accent-foreground: #e5c895;
+  --destructive: #ef4444;
+  --destructive-foreground: #180505;
+  --success: #4ade80;
+  --warning: #fbbf24;
+  --info: #60a5fa;
+  --border: #26262b;
+  --input: #2c2c32;
+  --ring: #e0564e;
+
+  --sidebar: #0f0f11;
+  --sidebar-foreground: #c9c7c4;
+  --sidebar-primary: #e0564e;
+  --sidebar-primary-foreground: #16090a;
+  --sidebar-accent: #1b1b1f;
+  --sidebar-accent-foreground: #f5f3f1;
+  --sidebar-border: #232328;
+  --sidebar-ring: #e0564e;
+
+  --chart-1: #e0564e;
+  --chart-2: #cda264;
+  --chart-3: #5b9dc4;
+  --chart-4: #8b8b93;
+  --chart-5: #b93c35;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-red: var(--red);
+  --color-red-dark: var(--red-dark);
+  --color-ink: var(--ink);
+  --color-slate: var(--slate);
+  --color-line: var(--line);
+  --color-mist: var(--mist);
+  --color-gold: var(--gold);
+  --color-gold-deep: var(--gold-deep);
+  --color-sky: var(--sky);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --font-sans: var(--font-sans);
+  --font-display: var(--font-display);
+
+  --radius-sharp: var(--radius-sharp);
+  --radius-card: var(--radius-card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    border-color: var(--border);
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans), system-ui, sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display), Georgia, serif;
+    font-weight: 500;
+    line-height: 1.15;
+    letter-spacing: -0.015em;
+  }
+}
+
+@layer utilities {
+  .eyebrow {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--primary);
+  }
+
+  .card-elevated {
+    box-shadow:
+      0 1px 2px rgb(0 0 0 / 0.04),
+      0 8px 24px -16px rgb(0 0 0 / 0.18);
+  }
+
+  .dark .card-elevated {
+    box-shadow:
+      0 1px 2px rgb(0 0 0 / 0.5),
+      0 12px 32px -18px rgb(0 0 0 / 0.8);
+  }
+
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* TipTap blog editor + public article body */
+.blog-editor-content p.is-editor-empty:first-child::before {
+  color: var(--muted-foreground);
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+.blog-editor-content,
+.blog-article-body {
+  color: var(--ink);
+  font-size: 1.05rem;
+  line-height: 1.75;
+}
+
+.blog-editor-content p,
+.blog-article-body p {
+  margin: 0 0 1rem;
+}
+
+.blog-editor-content h2,
+.blog-article-body h2 {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 1.75rem;
+  font-weight: 600;
+  line-height: 1.25;
+  margin: 1.75rem 0 0.75rem;
+}
+
+.blog-editor-content h3,
+.blog-article-body h3 {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 1.35rem;
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 1.5rem 0 0.5rem;
+}
+
+.blog-editor-content ul,
+.blog-article-body ul {
+  list-style: disc;
+  margin: 0 0 1rem;
+  padding-left: 1.35rem;
+}
+
+.blog-editor-content ol,
+.blog-article-body ol {
+  list-style: decimal;
+  margin: 0 0 1rem;
+  padding-left: 1.35rem;
+}
+
+.blog-editor-content li,
+.blog-article-body li {
+  margin: 0.25rem 0;
+}
+
+.blog-editor-content blockquote,
+.blog-article-body blockquote {
+  border-left: 3px solid color-mix(in oklab, var(--red) 45%, transparent);
+  color: var(--slate);
+  font-style: italic;
+  margin: 1.25rem 0;
+  padding-left: 1rem;
+}
+
+.blog-editor-content a,
+.blog-article-body a {
+  color: var(--red);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.blog-editor-content img,
+.blog-article-body img {
+  border-radius: 0.375rem;
+  display: block;
+  height: auto;
+  margin: 1.25rem 0;
+  max-width: 100%;
+}
+
+.blog-editor-content strong,
+.blog-article-body strong {
+  font-weight: 700;
+}

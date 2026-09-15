@@ -1,0 +1,109 @@
+{
+  "developers": [
+    {
+      "id": "verify-dev-1",
+      "name": "API Verify Developer",
+      "slug": "api-verify-developer",
+      "shortDescription": "Created by API Fetch verification",
+      "website": "https://example.com"
+    }
+  ],
+  "areas": [
+    {
+      "id": "verify-area-1",
+      "name": "API Verify Area",
+      "slug": "api-verify-area",
+      "cityName": "Dubai",
+      "shortDescription": "Verification area"
+    }
+  ],
+  "communities": [
+    {
+      "id": "verify-com-1",
+      "name": "API Verify Community",
+      "slug": "api-verify-community",
+      "areaName": "API Verify Area",
+      "shortDescription": "Verification community"
+    }
+  ],
+  "agents": [
+    {
+      "id": "verify-agent-1",
+      "name": "API Verify Agent",
+      "slug": "api-verify-agent",
+      "email": "verify-agent@example.com",
+      "title": "Sales Consultant"
+    }
+  ],
+  "amenities": [
+    {
+      "id": "verify-amenity-1",
+      "name": "API Verify Pool",
+      "slug": "api-verify-pool",
+      "icon": "pool"
+    }
+  ],
+  "categories": [
+    {
+      "id": "verify-cat-1",
+      "name": "API Verify Category",
+      "slug": "api-verify-category",
+      "description": "Verification category"
+    }
+  ],
+  "properties": [
+    {
+      "id": "verify-prop-1",
+      "name": "API Verify Residence",
+      "slug": "api-verify-residence",
+      "description": "Manual property imported via API Fetch verify",
+      "minPrice": "1500000",
+      "maxPrice": "2500000",
+      "developerName": "API Verify Developer",
+      "areaName": "API Verify Area"
+    }
+  ],
+  "posts": [
+    {
+      "id": "verify-blog-1",
+      "title": "API Verify Insight",
+      "slug": "api-verify-insight",
+      "excerpt": "Verification article",
+      "content": "<p>This post was created by the API Fetch verification script.</p>",
+      "publishedAt": "2026-08-11T10:00:00.000Z"
+    }
+  ],
+  "faqs": [
+    {
+      "id": "verify-faq-1",
+      "question": "API Verify FAQ question?",
+      "answer": "Yes — this FAQ was imported by the verification script."
+    }
+  ],
+  "testimonials": [
+    {
+      "id": "verify-t-1",
+      "authorName": "API Verify Client",
+      "authorRole": "Investor",
+      "content": "Verification testimonial content.",
+      "rating": "5"
+    }
+  ],
+  "pages": [
+    {
+      "id": "verify-page-1",
+      "title": "API Verify Page",
+      "slug": "api-verify-page",
+      "excerpt": "Verification page",
+      "body": "<p>Page body from API Fetch verify.</p>"
+    }
+  ],
+  "landingPages": [
+    {
+      "id": "verify-lp-1",
+      "title": "API Verify Landing",
+      "slug": "api-verify-landing",
+      "campaign": "verify"
+    }
+  ]
+}

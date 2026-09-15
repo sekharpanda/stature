@@ -1,0 +1,2361 @@
+// =============================================================================
+// Prowin REOS — Prisma Schema (Phase 0 Foundation)
+// Multi-tenant Real Estate Operating System
+// Soft delete: deletedAt | Every tenant row: organizationId
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// -----------------------------------------------------------------------------
+// Enums
+// -----------------------------------------------------------------------------
+
+enum UserStatus {
+  ACTIVE
+  INVITED
+  SUSPENDED
+  DISABLED
+}
+
+enum PropertySource {
+  MANUAL
+  LEADRAT
+}
+
+enum PropertyStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+  EXPIRED
+}
+
+/// Publish / inventory status (our workflow). Commercial lifecycle uses constructionStatus string from Reelly.
+enum CompletionStatus {
+  READY
+  OFF_PLAN
+  UNDER_CONSTRUCTION
+}
+
+/// Reelly furnishing values preserved as enum where stable; UNKNOWN for manual blanks.
+enum FurnishingStatus {
+  YES
+  NO
+  SEMI_FURNISHED
+  ONLY_KITCHEN
+  OPTIONAL_FURNISHED
+  NO_INFORMATION
+  FURNISHED
+  UNFURNISHED
+  NOT_SPECIFIED
+}
+
+enum VirtualTourType {
+  TOUR_360
+  VIDEO
+  LIVE
+}
+
+enum PropertySyncStatus {
+  IDLE
+  PENDING
+  SYNCING
+  SYNCED
+  FAILED
+  STALE
+  PROVIDER_DELETED
+  NOT_REQUIRED
+}
+
+enum GalleryKind {
+  COVER
+  LOBBY
+  INTERIOR
+  ARCHITECTURE
+  GENERAL_PLAN
+  UNIT_LAYOUT
+  OTHER
+}
+
+enum DocumentKind {
+  FLOOR_PLAN
+  BROCHURE
+  CONTRACT
+  FACTSHEET
+  OTHER
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+  PDF
+  DOCUMENT
+  FLOOR_PLAN
+  BROCHURE
+  LOGO
+  OTHER
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  FOLLOW_UP
+  MEETING_SCHEDULED
+  SITE_VISIT
+  CLOSED
+  LOST
+}
+
+enum CrmSyncStatus {
+  PENDING
+  SYNCED
+  FAILED
+  NOT_REQUIRED
+}
+
+enum WorkflowState {
+  DRAFT
+  IN_REVIEW
+  APPROVED
+  PUBLISHED
+  REJECTED
+  ARCHIVED
+}
+
+enum ContentEntityType {
+  BLOG_POST
+  PAGE
+  HOMEPAGE
+  LANDING_PAGE
+  PROPERTY
+  AGENT_PROFILE
+  AGENT_ACCOUNT
+}
+
+enum SubmissionKind {
+  /** A record that only becomes public once approved. */
+  CREATE
+  /** Changes held against an already-live record. */
+  UPDATE
+  /** Someone asking for portal access. */
+  ACCESS_REQUEST
+}
+
+enum SubmissionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  WITHDRAWN
+}
+
+enum PageKind {
+  STATIC
+  HOMEPAGE
+  LANDING
+}
+
+enum SectionType {
+  HERO
+  SEARCH
+  TRUST_STRIP
+  FEATURED_PROJECTS
+  DEVELOPERS
+  COMMUNITIES
+  AREAS
+  PATHS
+  TESTIMONIALS
+  STATISTICS
+  BANNER
+  CTA
+  TEAM
+  INSIGHT
+  FAQ
+  CUSTOM
+  FORM
+  SEO_LINKS
+  RICH_TEXT
+  GALLERY
+  VIDEO
+  MAP
+}
+
+enum FormFieldType {
+  TEXT
+  EMAIL
+  PHONE
+  TEXTAREA
+  SELECT
+  MULTI_SELECT
+  CHECKBOX
+  RADIO
+  NUMBER
+  DATE
+  HIDDEN
+  FILE
+}
+
+enum NotificationType {
+  NEW_LEAD
+  CRM_SYNC_FAILED
+  PROPERTY_SYNC_FAILED
+  PROPERTY_PUBLISHED
+  PROPERTY_EXPIRED
+  BLOG_SCHEDULED
+  WORKFLOW_SUBMITTED
+  WORKFLOW_APPROVED
+  WORKFLOW_REJECTED
+  SYSTEM_ALERT
+}
+
+enum SyncJobType {
+  PROPERTY_IMPORT
+  PROPERTY_UPDATE
+  PROPERTY_DELETE
+  BULK_IMPORT
+  BULK_UPDATE
+  BULK_PUBLISH
+  BULK_ARCHIVE
+  BULK_DELETE
+  CRM_LEAD_PUSH
+  CRM_LEAD_RETRY
+  FULL_SYNC
+  BLOG_IMPORT
+  API_IMPORT
+}
+
+enum ApiSourceTarget {
+  BLOG
+  INSIGHT
+  FAQ
+  TESTIMONIAL
+  DEVELOPER
+  AREA
+  COMMUNITY
+  AGENT
+  AMENITY
+  PROPERTY
+  CATEGORY
+  PAGE
+  LANDING_PAGE
+}
+
+enum SyncJobStatus {
+  QUEUED
+  RUNNING
+  SUCCESS
+  PARTIAL
+  FAILED
+  CANCELLED
+}
+
+enum AnalyticsEventType {
+  PAGE_VIEW
+  PROPERTY_VIEW
+  SEARCH
+  FILTER
+  LEAD_SUBMIT
+  BROCHURE_DOWNLOAD
+  WHATSAPP_CLICK
+  CALL_CLICK
+  MEETING
+  SITE_VISIT
+  CONVERSION
+  FAVOURITE
+  COMPARE
+  SHARE
+  FORM_START
+  FORM_SUBMIT
+}
+
+// -----------------------------------------------------------------------------
+// Multi-tenant root
+// -----------------------------------------------------------------------------
+
+model Organization {
+  id               String   @id @default(cuid())
+  name             String
+  slug             String   @unique
+  legalName        String?
+  email            String?
+  phone            String?
+  whatsapp         String?
+  address          String?
+  city             String?
+  country          String?  @default("AE")
+  logoMediaId      String?
+  faviconMediaId   String?
+  primaryColor     String?  @default("#A01919")
+  secondaryColor   String?  @default("#b08948")
+  domain           String?
+  timezone         String   @default("Asia/Dubai")
+  defaultCurrency  String   @default("AED")
+  isActive         Boolean  @default(true)
+  settings         Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  deletedAt        DateTime?
+
+  users              User[]
+  roles              Role[]
+  properties         Property[]
+  developers         Developer[]
+  countries          Country[]
+  cities             City[]
+  areas              Area[]
+  communities        Community[]
+  amenities          Amenity[]
+  features           Feature[]
+  banks              Bank[]
+  categories         PropertyCategory[]
+  propertyTypes      PropertyType[]
+  agents             Agent[]
+  leads              Lead[]
+  pages              Page[]
+  landingPages       LandingPage[]
+  blogPosts          BlogPost[]
+  blogCategories     BlogCategory[]
+  tags               Tag[]
+  testimonials       Testimonial[]
+  faqs               Faq[]
+  forms              Form[]
+  mediaFolders       MediaFolder[]
+  mediaAssets        MediaAsset[]
+  menus              Menu[]
+  websiteSettings    WebsiteSetting[]
+  notifications      Notification[]
+  activityLogs       ActivityLog[]
+  syncJobs           SyncJob[]
+  providerCredentials ProviderCredential[]
+  savedSearches      SavedSearch[]
+  savedPropertyFilters SavedPropertyFilter[]
+  analyticsEvents    AnalyticsEvent[]
+  nearbyPlaces       NearbyPlace[]
+  apiSources         ApiSource[]
+  contentSubmissions ContentSubmission[]
+
+  @@index([slug])
+  @@index([domain])
+  @@index([deletedAt])
+  @@map("organizations")
+}
+
+/** Saved HTTP API connections — fetch any JSON API into site content. */
+model ApiSource {
+  id             String          @id @default(cuid())
+  organizationId String
+  name           String
+  target         ApiSourceTarget
+  method         String          @default("GET")
+  url            String
+  /** Extra request headers as { key: value } */
+  headers        Json?
+  /** none | bearer | basic */
+  authType       String          @default("none")
+  authValue      String?
+  /** Dot path to the items array, e.g. data.posts — empty = root array or auto-detect */
+  itemsPath      String?
+  /** Map of destination field → source JSON path, e.g. { "title": "name", "content": "body.html" } */
+  fieldMap       Json
+  autoPublish    Boolean         @default(true)
+  enabled        Boolean         @default(true)
+  lastFetchedAt  DateTime?
+  lastResult     Json?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  deletedAt      DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, enabled])
+  @@index([organizationId, target])
+  @@index([deletedAt])
+  @@map("api_sources")
+}
+
+model ProviderCredential {
+  id             String   @id @default(cuid())
+  organizationId String
+  provider       String
+  label          String?
+  credentials    Json
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, provider, label])
+  @@index([organizationId, provider, isActive])
+  @@index([deletedAt])
+  @@map("provider_credentials")
+}
+
+// -----------------------------------------------------------------------------
+// Better Auth + RBAC
+// -----------------------------------------------------------------------------
+
+model User {
+  id             String     @id @default(cuid())
+  organizationId String?
+  name           String
+  email          String
+  emailVerified  Boolean    @default(false)
+  image          String?
+  phone          String?
+  status         UserStatus @default(ACTIVE)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  deletedAt      DateTime?
+
+  organization Organization? @relation(fields: [organizationId], references: [id])
+  sessions     Session[]
+  accounts     Account[]
+  userRoles    UserRole[]
+  assignedLeads Lead[]       @relation("LeadAssignee")
+  leadNotes    LeadNote[]
+  activityLogs ActivityLog[]
+  notifications Notification[]
+  favourites   Favourite[]
+  savedSearches SavedSearch[]
+  workflowActions WorkflowAction[]
+  agentProfile Agent?
+  submissions  ContentSubmission[] @relation("SubmissionAuthor")
+  reviewedSubmissions ContentSubmission[] @relation("SubmissionReviewer")
+
+  @@unique([email])
+  @@index([organizationId])
+  @@index([status])
+  @@index([deletedAt])
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  accountId             String
+  providerId            String
+  userId                String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("accounts")
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verifications")
+}
+
+model Role {
+  id             String   @id @default(cuid())
+  organizationId String?
+  name           String
+  slug           String
+  description    String?
+  isSystem       Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  organization    Organization?   @relation(fields: [organizationId], references: [id])
+  userRoles       UserRole[]
+  rolePermissions RolePermission[]
+
+  @@unique([organizationId, slug])
+  @@index([organizationId])
+  @@index([deletedAt])
+  @@map("roles")
+}
+
+model Permission {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  group       String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  rolePermissions RolePermission[]
+
+  @@index([group])
+  @@index([deletedAt])
+  @@map("permissions")
+}
+
+model RolePermission {
+  id           String   @id @default(cuid())
+  roleId       String
+  permissionId String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  deletedAt    DateTime?
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@index([deletedAt])
+  @@map("role_permissions")
+}
+
+model UserRole {
+  id        String   @id @default(cuid())
+  userId    String
+  roleId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId])
+  @@index([deletedAt])
+  @@map("user_roles")
+}
+
+// -----------------------------------------------------------------------------
+// Geo hierarchy
+// -----------------------------------------------------------------------------
+
+model Country {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  slug           String
+  isoCode        String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  cities       City[]
+  properties   Property[]
+
+  @@unique([organizationId, slug])
+  @@index([organizationId, deletedAt])
+  @@map("countries")
+}
+
+model City {
+  id             String   @id @default(cuid())
+  organizationId String
+  countryId      String
+  name           String
+  slug           String
+  latitude       Float?
+  longitude      Float?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  country      Country      @relation(fields: [countryId], references: [id])
+  areas        Area[]
+  properties   Property[]
+
+  @@unique([organizationId, slug])
+  @@index([organizationId, countryId])
+  @@index([deletedAt])
+  @@map("cities")
+}
+
+model Area {
+  id                  String   @id @default(cuid())
+  organizationId      String
+  cityId              String
+  name                String
+  slug                String
+  shortDescription    String?
+  description         String?  @db.Text
+  latitude            Float?
+  longitude           Float?
+  investmentHighlights String? @db.Text
+  rentalYield         Decimal? @db.Decimal(5, 2)
+  averageRoi          Decimal? @db.Decimal(5, 2)
+  metaTitle           String?
+  metaDescription     String?
+  canonicalUrl        String?
+  ogImageId           String?
+  isPublished         Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  deletedAt           DateTime?
+
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  city         City          @relation(fields: [cityId], references: [id])
+  communities  Community[]
+  properties   Property[]
+  gallery      AreaImage[]
+  nearbyPlaces NearbyPlace[] @relation("AreaNearby")
+  faqs         Faq[]
+
+  @@unique([organizationId, slug])
+  @@index([organizationId, cityId])
+  @@index([isPublished, deletedAt])
+  @@map("areas")
+}
+
+model AreaImage {
+  id        String   @id @default(cuid())
+  areaId    String
+  mediaId   String
+  alt       String?
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  area Area @relation(fields: [areaId], references: [id], onDelete: Cascade)
+
+  @@index([areaId, sortOrder])
+  @@index([deletedAt])
+  @@map("area_images")
+}
+
+model Community {
+  id                  String   @id @default(cuid())
+  organizationId      String
+  areaId              String
+  name                String
+  slug                String
+  shortDescription    String?
+  description         String?  @db.Text
+  latitude            Float?
+  longitude           Float?
+  investmentHighlights String? @db.Text
+  rentalYield         Decimal? @db.Decimal(5, 2)
+  averageRoi          Decimal? @db.Decimal(5, 2)
+  metaTitle           String?
+  metaDescription     String?
+  canonicalUrl        String?
+  ogImageId           String?
+  isPublished         Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  deletedAt           DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  area         Area         @relation(fields: [areaId], references: [id])
+  properties   Property[]
+  faqs         Faq[]
+
+  @@unique([organizationId, slug])
+  @@index([organizationId, areaId])
+  @@index([isPublished, deletedAt])
+  @@map("communities")
+}
+
+model NearbyPlace {
+  id             String   @id @default(cuid())
+  organizationId String
+  areaId         String?
+  name           String
+  category       String
+  latitude       Float?
+  longitude      Float?
+  distanceKm     Decimal? @db.Decimal(8, 2)
+  metadata       Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  area         Area?        @relation("AreaNearby", fields: [areaId], references: [id])
+
+  @@index([organizationId, category])
+  @@index([areaId])
+  @@index([deletedAt])
+  @@map("nearby_places")
+}
+
+// -----------------------------------------------------------------------------
+// Developers & taxonomy
+// -----------------------------------------------------------------------------
+
+model Developer {
+  id               String   @id @default(cuid())
+  organizationId   String
+  name             String
+  slug             String
+  logoMediaId      String?
+  coverMediaId     String?
+  shortDescription String?
+  description      String?  @db.Text
+  website          String?
+  email            String?
+  phone            String?
+  logoUrl          String?
+  foundedYear      Int?
+  headquarters     String?
+  investmentHighlights String? @db.Text
+  metaTitle        String?
+  metaDescription  String?
+  canonicalUrl     String?
+  isPublished      Boolean  @default(true)
+  /// Lower = properties appear earlier on public listings (9999 = unordered)
+  listPriority     Int      @default(9999)
+  externalId       String?
+  source           PropertySource @default(MANUAL)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  deletedAt        DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  properties   Property[]
+  faqs         Faq[]
+  gallery      DeveloperImage[]
+
+  @@unique([organizationId, slug])
+  @@index([organizationId, isPublished])
+  @@index([organizationId, listPriority])
+  @@index([externalId, source])
+  @@index([deletedAt])
+  @@map("developers")
+}
+
+/// Public-facing sales consultant / listing agent (catalog profile)
+model Agent {
+  id               String   @id @default(cuid())
+  organizationId   String
+  /// Optional link to a login User for CRM assignment
+  userId           String?  @unique
+  name             String
+  slug             String
+  email            String?
+  phone            String?
+  whatsapp         String?
+  photoMediaId     String?
+  photoUrl         String?
+  title            String?
+  bio              String?  @db.Text
+  specialties      String[] @default([])
+  languages        String[] @default([])
+  reraNumber       String?
+  yearsExperience  Int?
+  serviceAreas     String[] @default([])
+  isActive         Boolean  @default(true)
+  isFeatured       Boolean  @default(false)
+  sortOrder        Int      @default(0)
+  metaTitle        String?
+  metaDescription  String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  deletedAt        DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  properties   Property[]
+
+  @@unique([organizationId, slug])
+  @@index([organizationId, isActive, deletedAt])
+  @@index([organizationId, isFeatured])
+  @@index([deletedAt])
+  @@map("agents")
+}
+
+model DeveloperImage {
+  id          String   @id @default(cuid())
+  developerId String
+  mediaId     String
+  alt         String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  developer Developer @relation(fields: [developerId], references: [id], onDelete: Cascade)
+
+  @@index([developerId, sortOrder])
+  @@index([deletedAt])
+  @@map("developer_images")
+}
+
+model PropertyCategory {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  slug           String
+  description    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  properties   Property[]
+
+  @@unique([organizationId, slug])
+  @@index([deletedAt])
+  @@map("property_categories")
+}
+
+model PropertyType {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  slug           String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  properties   Property[]
+
+  @@unique([organizationId, slug])
+  @@index([deletedAt])
+  @@map("property_types")
+}
+
+model Amenity {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  slug           String
+  icon           String?
+  iconUrl        String?
+  externalId     String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  organization      Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  propertyAmenities PropertyAmenity[]
+
+  @@unique([organizationId, slug])
+  @@index([organizationId, externalId])
+  @@index([deletedAt])
+  @@map("amenities")
+}
+
+model Feature {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  slug           String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  organization     Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  propertyFeatures PropertyFeature[]
+
+  @@unique([organizationId, slug])
+  @@index([deletedAt])
+  @@map("features")
+}
+
+model Bank {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  slug           String
+  logoUrl        String?
+  website        String?
+  externalId     String?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  propertyBanks  PropertyBank[]
+
+  @@unique([organizationId, slug])
+  @@index([organizationId, externalId])
+  @@index([deletedAt])
+  @@map("banks")
+}
+
+// -----------------------------------------------------------------------------
+// Properties — core + normalized children (Reelly Project aligned)
+// -----------------------------------------------------------------------------
+
+model Property {
+  id                  String           @id @default(cuid())
+  organizationId      String
+  name                String
+  slug                String
+  description         String?          @db.Text
+  shortDescription    String?          @db.Text
+  status              PropertyStatus   @default(PUBLISHED)
+  source              PropertySource   @default(MANUAL)
+  /// LeadRat Project GUID when source = LEADRAT
+  leadratProjectId    String?
+  /// Optional upstream Reelly id if LeadRat ever exposes it
+  reellyProjectId     String?
+  reellySlug          String?
+  /// Reelly construction_status (snake_case label preserved as string)
+  constructionStatus  String?
+  /// Reelly sale_status
+  saleStatus          String?
+  /// Mapped READY / OFF_PLAN / UNDER_CONSTRUCTION when derivable
+  completionStatus    CompletionStatus?
+  completionLabel     String?
+  possessionDate      DateTime?
+  constructionStartDate DateTime?
+  constructionEndDate DateTime?
+  developerId         String?
+  agentId             String?
+  communityId         String?
+  areaId              String?
+  cityId              String?
+  countryId           String?
+  categoryId          String?
+  propertyTypeId      String?
+  minPrice            Decimal?         @db.Decimal(14, 2)
+  maxPrice            Decimal?         @db.Decimal(14, 2)
+  currency            String           @default("AED")
+  minSize             Decimal?         @db.Decimal(12, 2)
+  maxSize             Decimal?         @db.Decimal(12, 2)
+  areaUnit            String           @default("sqft")
+  furnishing          FurnishingStatus @default(NOT_SPECIFIED)
+  hasEscrow           Boolean          @default(false)
+  escrowNumber        String?
+  postHandover        Boolean          @default(false)
+  serviceCharge       String?
+  depositDescription  String?          @db.Text
+  brand               String?
+  managingCompany     String?
+  readinessProgress   Decimal?         @db.Decimal(5, 2)
+  website             String?
+  unitsCount          Int?
+  buildingCount       Int?
+  isFeatured          Boolean          @default(false)
+  isVerified          Boolean          @default(false)
+  isPartnerProject    Boolean          @default(false)
+  /// Broker cashback offered on this project, as a percentage (e.g. 1.00 = 1%)
+  cashbackPercent     Decimal?         @db.Decimal(5, 2)
+  /// Set when a 360 tour, video tour or live viewing is available
+  virtualTour         VirtualTourType?
+  /// Lower = shown earlier on public listings (priority developers / projects)
+  listPriority        Int              @default(9999)
+  /// Extended manual-upload fields (NRI-style government / plot / references)
+  details             Json?
+  /// Set only for listings that came through the agent portal; null means the
+  /// record is managed directly by staff and needs no approval to stay live.
+  workflowState       WorkflowState?
+  publishedAt         DateTime?
+  expiresAt           DateTime?
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+  deletedAt           DateTime?
+
+  organization Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  developer    Developer?        @relation(fields: [developerId], references: [id])
+  agent        Agent?            @relation(fields: [agentId], references: [id])
+  community    Community?        @relation(fields: [communityId], references: [id])
+  area         Area?             @relation(fields: [areaId], references: [id])
+  city         City?             @relation(fields: [cityId], references: [id])
+  country      Country?          @relation(fields: [countryId], references: [id])
+  category     PropertyCategory? @relation(fields: [categoryId], references: [id])
+  propertyType PropertyType?     @relation(fields: [propertyTypeId], references: [id])
+
+  address      PropertyAddress?
+  sync         PropertySync?
+  analytics    PropertyAnalytics?
+  seo          PropertySeo?
+  draft        PropertyDraft?
+
+  images       PropertyImage[]
+  videos       PropertyVideo[]
+  brochures    PropertyBrochure[]
+  documents    PropertyDocument[]
+  floorPlans   PropertyFloorPlan[]
+  amenities    PropertyAmenity[]
+  features     PropertyFeature[]
+  banks        PropertyBank[]
+  buildings    PropertyBuilding[]
+  unitTypes    PropertyUnitType[]
+  paymentPlans PaymentPlan[]
+  parkings     PropertyParking[]
+  mapPoints    PropertyMapPoint[]
+  units        Unit[]
+  leads        Lead[]
+  leadInterests LeadPropertyInterest[]
+  favourites   Favourite[]
+  recentlyViewed RecentlyViewed[]
+  syncLogs     PropertySyncLog[]
+
+  @@unique([organizationId, slug])
+  @@unique([organizationId, source, leadratProjectId])
+  @@index([organizationId, status, deletedAt])
+  @@index([organizationId, source, status])
+  @@index([organizationId, isFeatured, status])
+  @@index([organizationId, status, listPriority])
+  @@index([organizationId, minPrice])
+  @@index([organizationId, constructionStatus])
+  @@index([organizationId, saleStatus])
+  @@index([organizationId, cashbackPercent])
+  @@index([organizationId, virtualTour])
+  @@index([developerId])
+  @@index([agentId])
+  @@index([communityId])
+  @@index([areaId])
+  @@index([cityId])
+  @@index([leadratProjectId])
+  @@index([reellyProjectId])
+  @@index([name])
+  @@map("properties")
+}
+
+model PropertyAddress {
+  id            String   @id @default(cuid())
+  propertyId    String   @unique
+  country       String?
+  state         String?
+  city          String?
+  district      String?
+  locality      String?
+  subLocality   String?
+  community     String?
+  subCommunity  String?
+  tower         String?
+  sector        String?
+  village       String?
+  latitude      Float?
+  longitude     Float?
+  googlePlaceId String?
+  mapLocation   String?
+  polygon       Json?
+  /// Reelly location.id when present
+  externalLocationId String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  deletedAt     DateTime?
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([latitude, longitude])
+  @@index([district])
+  @@index([deletedAt])
+  @@map("property_addresses")
+}
+
+model PropertySync {
+  id            String             @id @default(cuid())
+  propertyId    String             @unique
+  status        PropertySyncStatus @default(NOT_REQUIRED)
+  apiVersion    String?            @default("v2")
+  syncVersion   Int                @default(0)
+  contentHash   String?
+  importedAt    DateTime?
+  lastSyncedAt  DateTime?
+  lastError     String?            @db.Text
+  lastPayload   Json?
+  providerUpdatedAt DateTime?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  deletedAt     DateTime?
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([lastSyncedAt])
+  @@index([deletedAt])
+  @@map("property_sync")
+}
+
+model PropertySyncLog {
+  id         String             @id @default(cuid())
+  propertyId String
+  status     PropertySyncStatus
+  apiVersion String?
+  attempt    Int                @default(1)
+  request    Json?
+  response   Json?
+  error      String?            @db.Text
+  durationMs Int?
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+  deletedAt  DateTime?
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId, createdAt])
+  @@index([status])
+  @@index([deletedAt])
+  @@map("property_sync_logs")
+}
+
+model PropertyAnalytics {
+  id                 String   @id @default(cuid())
+  propertyId         String   @unique
+  views              Int      @default(0)
+  enquiries          Int      @default(0)
+  brochureDownloads  Int      @default(0)
+  whatsappClicks     Int      @default(0)
+  callClicks         Int      @default(0)
+  meetings           Int      @default(0)
+  siteVisits         Int      @default(0)
+  conversions        Int      @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  deletedAt          DateTime?
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([deletedAt])
+  @@map("property_analytics")
+}
+
+model PropertyImage {
+  id           String      @id @default(cuid())
+  propertyId   String
+  galleryKind  GalleryKind @default(OTHER)
+  mediaAssetId String?
+  url          String
+  caption      String?
+  alt          String?
+  mime         String?
+  sizeBytes    Int?
+  width        Int?
+  height       Int?
+  sortOrder    Int         @default(0)
+  isCover      Boolean     @default(false)
+  externalId   String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  deletedAt    DateTime?
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId, galleryKind, sortOrder])
+  @@index([propertyId, isCover])
+  @@index([deletedAt])
+  @@map("property_images")
+}
+
+model PropertyVideo {
+  id           String   @id @default(cuid())
+  propertyId   String
+  title        String?
+  speakerName  String?
+  speakerPhoto String?
+  url          String?
+  videoFileUrl String?
+  provider     String?
+  sortOrder    Int      @default(0)
+  externalId   String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  deletedAt    DateTime?
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId, sortOrder])
+  @@index([deletedAt])
+  @@map("property_videos")
+}
+
+model PropertyBrochure {
+  id           String   @id @default(cuid())
+  propertyId   String
+  title        String?
+  url          String
+  mediaAssetId String?
+  mime         String?
+  sizeBytes    Int?
+  sortOrder    Int      @default(0)
+  externalId   String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  deletedAt    DateTime?
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId, sortOrder])
+  @@index([deletedAt])
+  @@map("property_brochures")
+}
+
+model PropertyDocument {
+  id           String       @id @default(cuid())
+  propertyId   String
+  title        String
+  kind         DocumentKind @default(OTHER)
+  mediaAssetId String?
+  url          String?
+  mime         String?
+  sizeBytes    Int?
+  description  String?
+  sortOrder    Int          @default(0)
+  externalId   String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  deletedAt    DateTime?
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId, kind])
+  @@index([deletedAt])
+  @@map("property_documents")
+}
+
+model PropertyFloorPlan {
+  id           String   @id @default(cuid())
+  propertyId   String
+  title        String
+  description  String?
+  mediaAssetId String?
+  fileUrl      String?
+  imageUrl     String?
+  bedrooms     Decimal? @db.Decimal(4, 1)
+  bathrooms    Decimal? @db.Decimal(4, 1)
+  areaSqft     Decimal? @db.Decimal(12, 2)
+  price        Decimal? @db.Decimal(14, 2)
+  sortOrder    Int      @default(0)
+  externalId   String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  deletedAt    DateTime?
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId, sortOrder])
+  @@index([deletedAt])
+  @@map("property_floor_plans")
+}
+
+model PropertyAmenity {
+  id         String   @id @default(cuid())
+  propertyId String
+  amenityId  String
+  iconUrl    String?
+  externalId String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  deletedAt  DateTime?
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  amenity  Amenity  @relation(fields: [amenityId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyId, amenityId])
+  @@index([deletedAt])
+  @@map("property_amenities")
+}
+
+model PropertyFeature {
+  id         String   @id @default(cuid())
+  propertyId String
+  featureId  String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  deletedAt  DateTime?
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  feature  Feature  @relation(fields: [featureId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyId, featureId])
+  @@index([deletedAt])
+  @@map("property_features")
+}
+
+model PropertyBank {
+  id         String   @id @default(cuid())
+  propertyId String
+  bankId     String
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  deletedAt  DateTime?
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  bank     Bank     @relation(fields: [bankId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyId, bankId])
+  @@index([deletedAt])
+  @@map("property_banks")
+}
+
+model PropertySeo {
+  id                 String   @id @default(cuid())
+  propertyId         String   @unique
+  metaTitle          String?
+  metaDescription    String?
+  canonicalUrl       String?
+  ogTitle            String?
+  ogDescription      String?
+  ogImageId          String?
+  twitterTitle       String?
+  twitterDescription String?
+  schemaJson         Json?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  deletedAt          DateTime?
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([deletedAt])
+  @@map("property_seo")
+}
+
+model PropertyBuilding {
+  id                     String   @id @default(cuid())
+  propertyId             String
+  externalId             String?
+  name                   String?
+  buildingType           String?
+  floorsCount            Int?
+  area                   Decimal? @db.Decimal(12, 2)
+  description            String?  @db.Text
+  constructionStartDate  DateTime?
+  constructionEndDate    DateTime?
+  escrow                 String?
+  coverImageUrl          String?
+  sortOrder              Int      @default(0)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+  deletedAt              DateTime?
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId, sortOrder])
+  @@index([externalId])
+  @@index([deletedAt])
+  @@map("property_buildings")
+}
+
+model PropertyUnitType {
+  id              String   @id @default(cuid())
+  propertyId      String
+  externalId      String?
+  name            String?
+  unitType        String?
+  normalizedType  String?
+  bedroomsLabel   String?
+  bedrooms        Decimal? @db.Decimal(4, 1)
+  unitsAmount     Int?
+  areaFrom        Decimal? @db.Decimal(12, 2)
+  areaTo          Decimal? @db.Decimal(12, 2)
+  priceFrom       Decimal? @db.Decimal(14, 2)
+  priceTo         Decimal? @db.Decimal(14, 2)
+  priceFromAed    Decimal? @db.Decimal(14, 2)
+  priceToAed      Decimal? @db.Decimal(14, 2)
+  priceFromUsd    Decimal? @db.Decimal(14, 2)
+  priceToUsd      Decimal? @db.Decimal(14, 2)
+  sizeFromSqft    Decimal? @db.Decimal(12, 2)
+  sizeToSqft      Decimal? @db.Decimal(12, 2)
+  sizeFromM2      Decimal? @db.Decimal(12, 2)
+  sizeToM2        Decimal? @db.Decimal(12, 2)
+  areaUnit        String?
+  priceCurrency   String?
+  typicalImageUrl String?
+  sortOrder       Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  deletedAt       DateTime?
+
+  property Property             @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  layouts  PropertyUnitLayout[]
+
+  @@index([propertyId, sortOrder])
+  @@index([unitType])
+  @@index([deletedAt])
+  @@map("property_unit_types")
+}
+
+model PropertyUnitLayout {
+  id           String   @id @default(cuid())
+  unitTypeId   String
+  imageUrl     String
+  mime         String?
+  width        Int?
+  height       Int?
+  sizeBytes    Int?
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  deletedAt    DateTime?
+
+  unitType PropertyUnitType @relation(fields: [unitTypeId], references: [id], onDelete: Cascade)
+
+  @@index([unitTypeId, sortOrder])
+  @@index([deletedAt])
+  @@map("property_unit_layouts")
+}
+
+model PaymentPlan {
+  id                  String   @id @default(cuid())
+  propertyId          String
+  externalId          String?
+  title               String
+  description         String?  @db.Text
+  durationMonths      Int?
+  isHandover          Boolean  @default(false)
+  monthsAfterHandover Int?
+  eoi                 String?
+  sortOrder           Int      @default(0)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  deletedAt           DateTime?
+
+  property Property          @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  steps    PaymentPlanStep[]
+
+  @@index([propertyId, sortOrder])
+  @@index([deletedAt])
+  @@map("payment_plans")
+}
+
+model PaymentPlanStep {
+  id            String   @id @default(cuid())
+  paymentPlanId String
+  name          String
+  percent       Decimal? @db.Decimal(6, 2)
+  amount        Decimal? @db.Decimal(14, 2)
+  dueLabel      String?
+  sortOrder     Int      @default(0)
+  metadata      Json?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  deletedAt     DateTime?
+
+  paymentPlan PaymentPlan @relation(fields: [paymentPlanId], references: [id], onDelete: Cascade)
+
+  @@index([paymentPlanId, sortOrder])
+  @@index([deletedAt])
+  @@map("payment_plan_steps")
+}
+
+model PropertyParking {
+  id           String   @id @default(cuid())
+  propertyId   String
+  externalId   String?
+  name         String?
+  unitType     String?
+  parkingSpace Int?
+  bedrooms     Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  deletedAt    DateTime?
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId])
+  @@index([deletedAt])
+  @@map("property_parkings")
+}
+
+model PropertyMapPoint {
+  id           String   @id @default(cuid())
+  propertyId   String
+  name         String
+  distanceKm   Decimal? @db.Decimal(10, 2)
+  timeMinutes  Decimal? @db.Decimal(10, 2)
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  deletedAt    DateTime?
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId, sortOrder])
+  @@index([deletedAt])
+  @@map("property_map_points")
+}
+
+model PropertyDraft {
+  id             String   @id @default(cuid())
+  propertyId     String?  @unique
+  organizationId String
+  userId         String?
+  step           Int      @default(1)
+  payload        Json
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  property Property? @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, userId])
+  @@index([deletedAt])
+  @@map("property_drafts")
+}
+
+model SavedPropertyFilter {
+  id             String   @id @default(cuid())
+  organizationId String
+  userId         String?
+  name           String
+  query          Json
+  columns        Json?
+  isShared       Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, userId])
+  @@index([deletedAt])
+  @@map("saved_property_filters")
+}
+
+model Unit {
+  id         String   @id @default(cuid())
+  propertyId String
+  unitNumber String?
+  bedrooms   Decimal? @db.Decimal(4, 1)
+  bathrooms  Decimal? @db.Decimal(4, 1)
+  areaSqft   Decimal? @db.Decimal(12, 2)
+  price      Decimal? @db.Decimal(14, 2)
+  floor      String?
+  view       String?
+  status     String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  deletedAt  DateTime?
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId])
+  @@index([deletedAt])
+  @@map("units")
+}
+
+model LeadPropertyInterest {
+  id         String   @id @default(cuid())
+  leadId     String
+  propertyId String
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  deletedAt  DateTime?
+
+  lead     Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([leadId, propertyId])
+  @@index([propertyId])
+  @@index([deletedAt])
+  @@map("lead_property_interests")
+}
+
+// -----------------------------------------------------------------------------
+// Discovery: favourites, recent, saved searches
+// -----------------------------------------------------------------------------
+
+model Favourite {
+  id             String   @id @default(cuid())
+  organizationId String? 
+  userId         String?
+  sessionKey     String?
+  propertyId     String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  user     User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, propertyId])
+  @@index([sessionKey, propertyId])
+  @@index([deletedAt])
+  @@map("favourites")
+}
+
+model RecentlyViewed {
+  id         String   @id @default(cuid())
+  userId     String?
+  sessionKey String?
+  propertyId String
+  viewedAt   DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  deletedAt  DateTime?
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([userId, viewedAt])
+  @@index([sessionKey, viewedAt])
+  @@index([deletedAt])
+  @@map("recently_viewed")
+}
+
+model SavedSearch {
+  id             String   @id @default(cuid())
+  organizationId String
+  userId         String?
+  sessionKey     String?
+  name           String?
+  query          Json
+  notifyEmail    Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, userId])
+  @@index([sessionKey])
+  @@index([deletedAt])
+  @@map("saved_searches")
+}
+
+// -----------------------------------------------------------------------------
+// Leads + LeadRat CRM sync
+// -----------------------------------------------------------------------------
+
+model Lead {
+  id               String        @id @default(cuid())
+  organizationId   String
+  name             String
+  phone            String?
+  email            String?
+  whatsapp         String?
+  country          String?
+  ipAddress        String?
+  device           String?
+  browser          String?
+  userAgent        String?
+  propertyId       String?
+  developerId      String?
+  areaId           String?
+  campaign         String?
+  utmSource        String?
+  utmMedium        String?
+  utmCampaign      String?
+  utmTerm          String?
+  utmContent       String?
+  gclid            String?
+  fbclid           String?
+  referrer         String?
+  landingPage      String?
+  leadSource       String?
+  formId           String?
+  status           LeadStatus    @default(NEW)
+  crmSyncStatus    CrmSyncStatus @default(PENDING)
+  crmExternalId    String?
+  crmResponse      Json?
+  crmLastSyncedAt  DateTime?
+  crmRetryCount    Int           @default(0)
+  assignedToId     String?
+  metadata         Json?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  deletedAt        DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  property     Property?    @relation(fields: [propertyId], references: [id])
+  assignedTo   User?        @relation("LeadAssignee", fields: [assignedToId], references: [id])
+  form         Form?        @relation(fields: [formId], references: [id])
+  notes        LeadNote[]
+  crmSyncLogs  CrmSyncLog[]
+  propertyInterests LeadPropertyInterest[]
+
+  @@index([organizationId, status, createdAt])
+  @@index([organizationId, crmSyncStatus])
+  @@index([assignedToId])
+  @@index([propertyId])
+  @@index([email])
+  @@index([phone])
+  @@index([deletedAt])
+  @@map("leads")
+}
+
+model LeadNote {
+  id        String   @id @default(cuid())
+  leadId    String
+  userId    String?
+  body      String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  lead Lead  @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([leadId, createdAt])
+  @@index([deletedAt])
+  @@map("lead_notes")
+}
+
+model CrmSyncLog {
+  id        String        @id @default(cuid())
+  leadId    String
+  provider  String        @default("leadrat")
+  status    CrmSyncStatus
+  request   Json?
+  response  Json?
+  error     String?
+  attempt   Int           @default(1)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  deletedAt DateTime?
+
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId, createdAt])
+  @@index([status])
+  @@index([deletedAt])
+  @@map("crm_sync_logs")
+}
+
+// -----------------------------------------------------------------------------
+// CMS: pages, landing, sections, blog, menus
+// -----------------------------------------------------------------------------
+
+model Page {
+  id               String        @id @default(cuid())
+  organizationId   String
+  kind             PageKind      @default(STATIC)
+  title            String
+  slug             String
+  excerpt          String?
+  body             String?       @db.Text
+  workflowState    WorkflowState @default(DRAFT)
+  isHomepage       Boolean       @default(false)
+  publishedAt      DateTime?
+  metaTitle        String?
+  metaDescription  String?
+  canonicalUrl     String?
+  ogImageId        String?
+  schemaJson       Json?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  deletedAt        DateTime?
+
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sections     PageSection[]
+
+  @@unique([organizationId, slug])
+  @@index([organizationId, kind, workflowState])
+  @@index([isHomepage])
+  @@index([deletedAt])
+  @@map("pages")
+}
+
+model LandingPage {
+  id              String        @id @default(cuid())
+  organizationId  String
+  title           String
+  slug            String
+  campaign        String?
+  utmDefaults     Json?
+  workflowState   WorkflowState @default(DRAFT)
+  publishedAt     DateTime?
+  metaTitle       String?
+  metaDescription String?
+  canonicalUrl    String?
+  ogImageId       String?
+  schemaJson      Json?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  deletedAt       DateTime?
+
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sections     PageSection[]
+
+  @@unique([organizationId, slug])
+  @@index([organizationId, workflowState])
+  @@index([campaign])
+  @@index([deletedAt])
+  @@map("landing_pages")
+}
+
+model PageSection {
+  id            String      @id @default(cuid())
+  pageId        String?
+  landingPageId String?
+  type          SectionType
+  name          String?
+  config        Json
+  sortOrder     Int         @default(0)
+  isEnabled     Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  deletedAt     DateTime?
+
+  page        Page?        @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  landingPage LandingPage? @relation(fields: [landingPageId], references: [id], onDelete: Cascade)
+
+  @@index([pageId, sortOrder])
+  @@index([landingPageId, sortOrder])
+  @@index([isEnabled, deletedAt])
+  @@map("page_sections")
+}
+
+model BlogCategory {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  slug           String
+  description    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  organization Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  posts        BlogPostCategory[]
+
+  @@unique([organizationId, slug])
+  @@index([deletedAt])
+  @@map("blog_categories")
+}
+
+model Tag {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  slug           String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  posts        BlogPostTag[]
+
+  @@unique([organizationId, slug])
+  @@index([deletedAt])
+  @@map("tags")
+}
+
+model BlogPost {
+  id              String        @id @default(cuid())
+  organizationId  String
+  title           String
+  slug            String
+  excerpt         String?
+  content         String?       @db.Text
+  coverMediaId    String?
+  workflowState   WorkflowState @default(DRAFT)
+  publishedAt     DateTime?
+  scheduledAt     DateTime?
+  authorId        String?
+  metaTitle       String?
+  metaDescription String?
+  canonicalUrl    String?
+  ogImageId       String?
+  schemaJson      Json?
+  /** Upstream provider key, e.g. wordpress | json | manual */
+  source          String        @default("manual")
+  /** Stable ID from the upstream API for idempotent sync */
+  externalId      String?
+  contentHash     String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  deletedAt       DateTime?
+
+  organization Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  categories   BlogPostCategory[]
+  tags         BlogPostTag[]
+
+  @@unique([organizationId, slug])
+  @@unique([organizationId, source, externalId])
+  @@index([organizationId, workflowState, publishedAt])
+  @@index([organizationId, source])
+  @@index([deletedAt])
+  @@map("blog_posts")
+}
+
+model BlogPostCategory {
+  id        String   @id @default(cuid())
+  postId    String
+  categoryId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  post     BlogPost     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  category BlogCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, categoryId])
+  @@index([deletedAt])
+  @@map("blog_post_categories")
+}
+
+model BlogPostTag {
+  id        String   @id @default(cuid())
+  postId    String
+  tagId     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  post BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag  Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, tagId])
+  @@index([deletedAt])
+  @@map("blog_post_tags")
+}
+
+model Testimonial {
+  id             String   @id @default(cuid())
+  organizationId String
+  authorName     String
+  authorRole     String?
+  content        String   @db.Text
+  rating         Decimal? @db.Decimal(2, 1)
+  avatarMediaId  String?
+  isFeatured     Boolean  @default(false)
+  sortOrder      Int      @default(0)
+  source         String   @default("manual")
+  externalId     String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, source, externalId])
+  @@index([organizationId, isFeatured, sortOrder])
+  @@index([organizationId, source])
+  @@index([deletedAt])
+  @@map("testimonials")
+}
+
+model Faq {
+  id             String   @id @default(cuid())
+  organizationId String
+  question       String
+  answer         String   @db.Text
+  entityType     String?
+  entityId       String?
+  areaId         String?
+  communityId    String?
+  developerId    String?
+  sortOrder      Int      @default(0)
+  source         String   @default("manual")
+  externalId     String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  area         Area?        @relation(fields: [areaId], references: [id])
+  community    Community?   @relation(fields: [communityId], references: [id])
+  developer    Developer?   @relation(fields: [developerId], references: [id])
+
+  @@unique([organizationId, source, externalId])
+  @@index([organizationId, entityType, entityId])
+  @@index([organizationId, source])
+  @@index([deletedAt])
+  @@map("faqs")
+}
+
+model Menu {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  location       String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  items        MenuItem[]
+
+  @@unique([organizationId, location])
+  @@index([deletedAt])
+  @@map("menus")
+}
+
+model MenuItem {
+  id        String   @id @default(cuid())
+  menuId    String
+  parentId  String?
+  label     String
+  href      String?
+  target    String?
+  sortOrder Int      @default(0)
+  isVisible Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  menu     Menu       @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  parent   MenuItem?  @relation("MenuTree", fields: [parentId], references: [id])
+  children MenuItem[] @relation("MenuTree")
+
+  @@index([menuId, sortOrder])
+  @@index([deletedAt])
+  @@map("menu_items")
+}
+
+// -----------------------------------------------------------------------------
+// Form builder
+// -----------------------------------------------------------------------------
+
+model Form {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  slug           String
+  description    String?
+  successMessage String?
+  submitLabel    String?  @default("Submit")
+  isActive       Boolean  @default(true)
+  settings       Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  organization Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  fields       FormField[]
+  submissions  FormSubmission[]
+  leads        Lead[]
+
+  @@unique([organizationId, slug])
+  @@index([organizationId, isActive])
+  @@index([deletedAt])
+  @@map("forms")
+}
+
+model FormField {
+  id         String        @id @default(cuid())
+  formId     String
+  name       String
+  label      String
+  type       FormFieldType
+  placeholder String?
+  helpText   String?
+  options    Json?
+  validation Json?
+  isRequired Boolean       @default(false)
+  sortOrder  Int           @default(0)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  deletedAt  DateTime?
+
+  form Form @relation(fields: [formId], references: [id], onDelete: Cascade)
+
+  @@unique([formId, name])
+  @@index([formId, sortOrder])
+  @@index([deletedAt])
+  @@map("form_fields")
+}
+
+model FormSubmission {
+  id        String   @id @default(cuid())
+  formId    String
+  payload   Json
+  leadId    String?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  form Form @relation(fields: [formId], references: [id], onDelete: Cascade)
+
+  @@index([formId, createdAt])
+  @@index([deletedAt])
+  @@map("form_submissions")
+}
+
+// -----------------------------------------------------------------------------
+// Workflow / approvals
+// -----------------------------------------------------------------------------
+
+model WorkflowAction {
+  id         String            @id @default(cuid())
+  entityType ContentEntityType
+  entityId   String
+  fromState  WorkflowState?
+  toState    WorkflowState
+  comment    String?
+  actorId    String?
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+  deletedAt  DateTime?
+
+  actor User? @relation(fields: [actorId], references: [id])
+
+  @@index([entityType, entityId, createdAt])
+  @@index([deletedAt])
+  @@map("workflow_actions")
+}
+
+/**
+ * One thing waiting for a reviewer. CREATE rows point at a record that is
+ * already stored but kept out of public view; UPDATE rows hold the proposed
+ * changes in `payload` so the live version stays untouched until approval.
+ */
+model ContentSubmission {
+  id             String            @id @default(cuid())
+  organizationId String
+  entityType     ContentEntityType
+  /// Null for access requests, which have no content record yet.
+  entityId       String?
+  kind           SubmissionKind
+  status         SubmissionStatus  @default(PENDING)
+  title          String
+  /// Proposed values for UPDATE, the requested account details for
+  /// ACCESS_REQUEST, and a snapshot for CREATE.
+  payload        Json?
+  /// Field-by-field description of what changes, built at submit time.
+  changes        Json?
+  /// Message from the person submitting.
+  note           String?
+  /// Reviewer's reason, shown back to the submitter.
+  reviewNote     String?
+  submittedById  String?
+  reviewedById   String?
+  submittedAt    DateTime          @default(now())
+  reviewedAt     DateTime?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  deletedAt      DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  submittedBy  User?        @relation("SubmissionAuthor", fields: [submittedById], references: [id])
+  reviewedBy   User?        @relation("SubmissionReviewer", fields: [reviewedById], references: [id])
+
+  @@index([organizationId, status, submittedAt])
+  @@index([entityType, entityId])
+  @@index([submittedById, status])
+  @@index([deletedAt])
+  @@map("content_submissions")
+}
+
+// -----------------------------------------------------------------------------
+// Media library
+// -----------------------------------------------------------------------------
+
+model MediaFolder {
+  id             String   @id @default(cuid())
+  organizationId String
+  parentId       String?
+  name           String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  parent       MediaFolder?  @relation("FolderTree", fields: [parentId], references: [id])
+  children     MediaFolder[] @relation("FolderTree")
+  assets       MediaAsset[]
+
+  @@index([organizationId, parentId])
+  @@index([deletedAt])
+  @@map("media_folders")
+}
+
+model MediaAsset {
+  id             String    @id @default(cuid())
+  organizationId String
+  folderId       String?
+  type           MediaType
+  filename       String
+  originalName   String
+  mimeType       String
+  sizeBytes      Int
+  storageKey     String
+  url            String
+  width          Int?
+  height         Int?
+  durationSec    Int?
+  alt            String?
+  title          String?
+  checksum       String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
+
+  organization Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  folder       MediaFolder?       @relation(fields: [folderId], references: [id])
+  versions     MediaAssetVersion[]
+  tags         MediaAssetTag[]
+
+  @@index([organizationId, type])
+  @@index([folderId])
+  @@index([originalName])
+  @@index([deletedAt])
+  @@map("media_assets")
+}
+
+model MediaAssetVersion {
+  id        String   @id @default(cuid())
+  assetId   String
+  version   Int
+  storageKey String
+  url       String
+  sizeBytes Int
+  mimeType  String
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  asset MediaAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@unique([assetId, version])
+  @@index([deletedAt])
+  @@map("media_asset_versions")
+}
+
+model MediaAssetTag {
+  id        String   @id @default(cuid())
+  assetId   String
+  tag       String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  asset MediaAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@unique([assetId, tag])
+  @@index([tag])
+  @@index([deletedAt])
+  @@map("media_asset_tags")
+}
+
+// -----------------------------------------------------------------------------
+// Settings, notifications, activity, sync, analytics
+// -----------------------------------------------------------------------------
+
+model WebsiteSetting {
+  id             String   @id @default(cuid())
+  organizationId String
+  key            String
+  value          Json
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, key])
+  @@index([deletedAt])
+  @@map("website_settings")
+}
+
+model Notification {
+  id             String           @id @default(cuid())
+  organizationId String
+  userId         String?
+  type           NotificationType
+  title          String
+  body           String?
+  href           String?
+  metadata       Json?
+  isRead         Boolean          @default(false)
+  readAt         DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  deletedAt      DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User?        @relation(fields: [userId], references: [id])
+
+  @@index([organizationId, isRead, createdAt])
+  @@index([userId, isRead])
+  @@index([deletedAt])
+  @@map("notifications")
+}
+
+model ActivityLog {
+  id             String   @id @default(cuid())
+  organizationId String
+  userId         String?
+  action         String
+  entityType     String?
+  entityId       String?
+  metadata       Json?
+  ipAddress      String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User?        @relation(fields: [userId], references: [id])
+
+  @@index([organizationId, createdAt])
+  @@index([entityType, entityId])
+  @@index([deletedAt])
+  @@map("activity_logs")
+}
+
+model SyncJob {
+  id             String        @id @default(cuid())
+  organizationId String
+  type           SyncJobType
+  provider       String?
+  status         SyncJobStatus @default(QUEUED)
+  payload        Json?
+  result         Json?
+  error          String?
+  startedAt      DateTime?
+  finishedAt     DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  deletedAt      DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, status, createdAt])
+  @@index([type, provider])
+  @@index([deletedAt])
+  @@map("sync_jobs")
+}
+
+model AnalyticsEvent {
+  id             String             @id @default(cuid())
+  organizationId String
+  type           AnalyticsEventType
+  path           String?
+  propertyId     String?
+  sessionId      String?
+  userId         String?
+  utmSource      String?
+  utmMedium      String?
+  utmCampaign    String?
+  gclid          String?
+  fbclid         String?
+  referrer       String?
+  metadata       Json?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  deletedAt      DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, type, createdAt])
+  @@index([propertyId])
+  @@index([utmSource, utmCampaign])
+  @@index([deletedAt])
+  @@map("analytics_events")
+}

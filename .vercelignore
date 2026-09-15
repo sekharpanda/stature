@@ -1,0 +1,11 @@
+tmp-*.json
+.env
+.env.local
+.env.*.local
+node_modules
+.next
+.cursor
+agent-transcripts
+scripts/backfill-*.ts
+scripts/pin-developers-az.ts
+scripts/seed-developer-listing-order.ts
