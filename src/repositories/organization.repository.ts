@@ -48,9 +48,9 @@ export const organizationRepository = {
         },
       })
       .then(rememberDefaultOrg)
-      .catch((err) => {
+           .catch((err) => {
         defaultOrgInflight = null;
-        throw err;
+        return null;
       });
 
     return defaultOrgInflight;
