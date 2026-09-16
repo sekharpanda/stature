@@ -11,8 +11,9 @@ const globalForPrisma = globalThis as unknown as {
  * Keep a small limit and longer timeout so stale sockets recover cleanly.
  */
 function datasourceUrl() {
-  const raw = process.env.DATABASE_URL;
-  if (!raw) return undefined;
+  const raw =
+    process.env.DATABASE_URL ||
+    "postgresql://postgres:postgres@localhost:5432/postgres";
   try {
     const url = new URL(raw);
     if (!url.searchParams.has("pgbouncer")) {
