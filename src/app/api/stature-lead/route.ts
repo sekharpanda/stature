@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { stature } from "@/config/stature";
-import { sendEmail } from "@/lib/email";
+import { sendEmail } from "@/lib/email/client";
 import { pushHelloLead } from "@/lib/helloleads";
 
 export const runtime = "nodejs";
