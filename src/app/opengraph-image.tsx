@@ -53,6 +53,7 @@ export default function OpengraphImage() {
         <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
           <div
             style={{
+              display: "flex",
               fontSize: 58,
               lineHeight: 1.12,
               letterSpacing: "-0.02em",
@@ -61,8 +62,8 @@ export default function OpengraphImage() {
           >
             {statureContent.hero.title}
           </div>
-          <div style={{ fontSize: 24, color: "rgba(255,255,255,0.72)" }}>
-            Bengaluru real estate · since {stature.foundedYear}
+          <div style={{ display: "flex", fontSize: 24, color: "rgba(255,255,255,0.72)" }}>
+            {`Bengaluru real estate · since ${stature.foundedYear}`}
           </div>
         </div>
 
