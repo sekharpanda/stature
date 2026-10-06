@@ -36,8 +36,8 @@ function env(name: string) {
 
 export function helloLeadsConfigured() {
   return Boolean(
-    (env("HELLOLEADS_API_KEY") || env("HELLOLEADS_PRIVATE_KEY")) &&
-      env("HELLOLEADS_LIST_KEY"),
+    (env("HELLOLEADS_API_KEY") || env("HELLOLEADS_PRIVATE_KEY") || "3b36a5327fb9eceb971387ae1d11cee7") &&
+      (env("HELLOLEADS_LIST_KEY") || "688f80a112e79efe17b230d0bccee4e6"),
   );
 }
 
@@ -122,8 +122,8 @@ export async function pushHelloLead(
   input: HelloLeadInput,
 ): Promise<HelloLeadResult> {
   const enabled = env("HELLOLEADS_ENABLED").toLowerCase() !== "false";
-  const apiKey = env("HELLOLEADS_API_KEY") || env("HELLOLEADS_PRIVATE_KEY");
-  const listKey = env("HELLOLEADS_LIST_KEY");
+  const apiKey = env("HELLOLEADS_API_KEY") || env("HELLOLEADS_PRIVATE_KEY") || "3b36a5327fb9eceb971387ae1d11cee7";
+  const listKey = env("HELLOLEADS_LIST_KEY") || "688f80a112e79efe17b230d0bccee4e6";
   const url = env("HELLOLEADS_API_URL") || DEFAULT_URL;
 
   if (!enabled || !apiKey || !listKey) {
