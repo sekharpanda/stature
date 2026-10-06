@@ -122,15 +122,11 @@ export function StatureLeadForm({
         return;
       }
     } catch {
-      // Fall through to mailto if Hostinger SMTP is not set yet.
+      // Network error
     }
 
-    const body = buildBody(payload);
-    window.location.href = `mailto:${stature.email}?subject=${encodeURIComponent(
-      `Enquiry — ${interest}`,
-    )}&body=${encodeURIComponent(body)}`;
-    setSent(true);
-    onSent?.();
+    // API failed — show error, do not open email client
+    setError("Something went wrong. Please WhatsApp or call us directly.");
     setBusy(false);
   }
 
