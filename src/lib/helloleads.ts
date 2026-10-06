@@ -28,7 +28,7 @@ export type HelloLeadResult =
   | { ok: false; skipped?: false; reason: string };
 
 const DEFAULT_URL =
-  "https://app.helloleads.io/index.php/source/api/addlead";
+  "https://app.helloleads.io/index.php/private/integrate/AuthLead";
 
 function env(name: string) {
   return (process.env[name] || "").trim();
@@ -158,7 +158,8 @@ export async function pushHelloLead(
   };
 
   try {
-    const res = await fetch(url, {
+    const fetchUrl = url.includes("?") ? `${url}&token=${apiKey}` : `${url}?token=${apiKey}`;
+    const res = await fetch(fetchUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
