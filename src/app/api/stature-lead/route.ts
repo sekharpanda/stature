@@ -114,7 +114,9 @@ export async function POST(request: Request) {
 
   return NextResponse.json(
     {
-      error: "Lead desk is not configured yet.",
+      error: hello.reason === "not_configured" 
+        ? "Lead desk is not configured yet." 
+        : "CRM (HelloLeads) is currently unavailable or rejected the request.",
       helloleads: false,
     },
     { status: 503 },
